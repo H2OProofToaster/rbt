@@ -76,7 +76,7 @@ struct RBT {
     else { y->parent->right = y; }
     
     //Fix child parent
-    x->right->parent = x;
+    if (x->right != nullptr) { x->right->parent = x; }
   }
 
   void rightRotate(Node* x) {
@@ -90,9 +90,9 @@ struct RBT {
     x->parent = y;
 
     if (y->parent->left == x) { y->parent->left = y; }
-    else { y->parent->left = y; }
+    else { y->parent->right = y; }
 
-    x->right->parent = x;
+    if (x->left != nullptr) { x->left->parent = x; }
   }
 
   Node* getSibling(Node* x) {
@@ -110,12 +110,16 @@ struct RBT {
 
   bool isInnerChild(Node* x) {
 
-    bool right;
+    bool r1;
+    bool r2;
     
-    if (x->parent->left == x) { right = false; }
-    else { right = true; }
+    if (x->parent->left == x) { r1 = false; }
+    else { r1 = true; }
 
-    return x->parent->parent->left == x ^ right;
+    if (x->parent->parent->left == x->parent) { r2 = false; }
+    else { r2 = true; }
+
+    return r1 ^ r2;
   }
   
   void insert(int v) {
