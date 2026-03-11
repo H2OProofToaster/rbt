@@ -12,7 +12,7 @@ int main() {
   //Do actions
   while (running) {
 
-    cout << "What is your action? (ADD, READ, DELETE, SEARCH, PRINT, QUIT)" << endl;
+    cout << "What is your action? (ADD, READ, SEARCH, PRINT, QUIT)" << endl;
     string action;
     cin >> action;
 
@@ -51,7 +51,7 @@ int main() {
 	cout << "Done" << endl;
       }
     }
-    else if (action == "DELETE" or action == "d") {
+    /*else if (action == "DELETE" or action == "d") {
 
       //Delete
       cout << "Remove what number? ";
@@ -63,7 +63,7 @@ int main() {
       tree->remove(num);
 
       cout << "Done" << endl;
-    }
+      }*/
     else if (action == "SEARCH" or action == "s") {
 
       //Search

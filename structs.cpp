@@ -11,7 +11,7 @@ struct Node {
   Node* left = nullptr;
   Node* right = nullptr;
   Node* parent = nullptr;
-  bool black = true;
+  bool black = false;
 
   Node() {}
   Node(int d) : data(d) {}
@@ -97,11 +97,28 @@ struct RBT {
 
   Node* getSibling(Node* x) {
 
+    if (x->parent->left == nullptr or x->parent->right == nullptr) {
+
+      Node* s = new Node();
+      s->black = true;
+      return s;
+    }
+    
     if (x->parent->left == x) { return x->parent->right; }
     else { return x->parent->left; }
   }
 
-  Node* BSTinsert(int v) {
+  bool isInnerChild(Node* x) {
+
+    bool right;
+    
+    if (x->parent->left == x) { right = false; }
+    else { right = true; }
+
+    return x->parent->parent->left == x ^ right;
+  }
+  
+  void insert(int v) {
 
     Node* z = new Node(v);
     Node* y = nullptr;
@@ -120,10 +137,10 @@ struct RBT {
     else if (v < y->data) { y->left = z; }
     else { y->right = z; }
 
-    return z;
+    this->fixInsertColor(z);
   }
   
-  void BSTremove(int v) {
+  void remove(int v) {
 
     Node* remove = this->search(v);
     if (remove->data == -1) { delete remove; return; }
@@ -243,8 +260,6 @@ struct RBT {
   
   void fixInsertColor(Node* x) {
 
-    x->black = false; //Set to red
-
     //Empty tree
     if (head == x) { x->black = true; return; }
 
@@ -254,32 +269,70 @@ struct RBT {
     //Red Parent and Uncle
     else if (x->parent->black == false and getSibling(x->parent)->black == false) {
 
-      
+      x->parent->black = true;
+      getSibling(x->parent)->black = true;
+
+      x->parent->parent->black = false;
+
+      fixInsertColor(x->parent->parent);
+
+      return;
+    }
+
+    //Red Parent, Black/Null Uncle, and Inner Child (parent is left and x is right & v.v)
+    else if (x->parent->black == false and
+	     getSibling(x->parent)->black == true and
+	     isInnerChild(x)) {
+
+      if (x->parent->left == x) { rightRotate(x->parent); }
+      else { leftRotate(x->parent); }
+
+      bool temp = x->black;
+      x->black = x->parent->black;
+      x->parent->black = temp;
+    }
+
+    //Red Parent, Black/Null Uncle, and Outer Child
+    else if (x->parent->black == false and
+	     getSibling(x->parent)->black == true and
+	     !isInnerChild(x)) {
+
+      if (x->parent->left == x) { rightRotate(x->parent->parent); }
+      else { leftRotate(x->parent->parent); }
+
+      bool temp = x->parent->black;
+      x->parent->black = x->parent->parent->black;
+      x->parent->parent->black = temp;
+    }
+
+    head->black = true;
   }
       
   void print(int indent = 0, Node* i = nullptr) {
 
-    if (this->head == nullptr) { return; }
+    if (this->head == nullptr) { return; } //Empty tree
     
-    if (i == nullptr) { i = head; }
+    if (i == nullptr) { i = head; } //Initial case
     
-    if (i->right != nullptr) { this->print(indent + 1, i->right); }
+    if (i->right != nullptr) { this->print(indent + 1, i->right); } //print right subtree
 
-    for (int j = 0; j < indent; j++) { cout << "\t"; }
+    for (int j = 0; j < indent; j++) { cout << "\t"; } //tab in
 
-    if (i->parent != nullptr) {
+    if (i->black == true) { cout << "(B)"; } //print color
+    else { cout << "(R)"; }
+    
+    if (i->parent != nullptr) { //print parent num
 
-      cout << "(";
-      if (i->parent->data < 100) { cout << "0"; }
-      if (i->parent->data < 10) { cout << "00"; }
-      cout << i->parent->data;
-      cout << ")";
+      if (i->parent->data < 10) { cout << "(00"; }
+      else if (i->parent->data < 100) { cout << "(0"; }
+      cout << i->parent->data << ")";
     }
-    if (i->data < 100) { cout << "0"; }
-    else if (i->data < 10) { cout << "00"; }
-    cout << i->data << endl;
+    
+    if (i->data < 10) { cout << "00"; }
+    else if (i->data < 100) { cout << "0"; }
+    cout << i->data << endl; //print num
 
-    if (i->left != nullptr) { this->print(indent + 1, i->left); }
+    if (i->left != nullptr) { this->print(indent + 1, i->left); } //left subtree
   }
 };
 
