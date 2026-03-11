@@ -7,7 +7,7 @@ using namespace std;
 int main() {
 
   bool running = true;
-  BST* tree = new BST();
+  RBT* tree = new RBT();
   
   //Do actions
   while (running) {

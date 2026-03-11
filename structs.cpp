@@ -11,22 +11,24 @@ struct Node {
   Node* left = nullptr;
   Node* right = nullptr;
   Node* parent = nullptr;
+  bool black = true;
 
   Node() {}
   Node(int d) : data(d) {}
 
   ~Node() { delete left; delete right; }
+
+  void safeDelete() { left = nullptr; right = nullptr; delete this; }
 };
 
-struct BST {
+struct RBT {
 
   Node* head = nullptr;
 
-  BST() { /*cout << "Head: " << head << endl; */}
-  //BST(BST* i) { this->insert(i); }
+  RBT() { /*cout << "Head: " << head << endl; */}
 
   //RECURSIVE DELETE
-  ~BST() { delete head; }
+  ~RBT() { delete head; }
 
   //Min, succ, and search ripped off from wikipedia
   Node* min(Node* v) {
@@ -57,7 +59,49 @@ struct BST {
     return t;
   }
   
-  void insert(int v) {
+  void leftRotate(Node* x) {
+
+    Node* y = x->right;
+
+    //Detach y left subtree
+    x->right = y->left;
+    y->left = x;
+
+    //Fix parents
+    y->parent = x->parent;
+    x->parent = y;
+
+    //Fix parent child
+    if (y->parent->left == x) { y->parent->left = y; }
+    else { y->parent->right = y; }
+    
+    //Fix child parent
+    x->right->parent = x;
+  }
+
+  void rightRotate(Node* x) {
+
+    Node* y = x->left;
+
+    x->left = y->right;
+    y->right = x;
+
+    y->parent = x->parent;
+    x->parent = y;
+
+    if (y->parent->left == x) { y->parent->left = y; }
+    else { y->parent->left = y; }
+
+    x->right->parent = x;
+  }
+
+  Node* getSibling(Node* x) {
+
+    if (x->parent->left == x) { return x->parent->right; }
+    else { return x->parent->left; }
+  }
+
+  Node* BSTinsert(int v) {
 
     Node* z = new Node(v);
     Node* y = nullptr;
@@ -75,9 +119,11 @@ struct BST {
     if (y == nullptr) { head = z; }
     else if (v < y->data) { y->left = z; }
     else { y->right = z; }
+
+    return z;
   }
   
-  void remove(int v) {
+  void BSTremove(int v) {
 
     Node* remove = this->search(v);
     if (remove->data == -1) { delete remove; return; }
@@ -194,7 +240,23 @@ struct BST {
       }
     }
   }
-    
+  
+  void fixInsertColor(Node* x) {
+
+    x->black = false; //Set to red
+
+    //Empty tree
+    if (head == x) { x->black = true; return; }
+
+    //Black Parent
+    else if (x->parent->black == true) { return; }
+
+    //Red Parent and Uncle
+    else if (x->parent->black == false and getSibling(x->parent)->black == false) {
+
+      
+  }
+      
   void print(int indent = 0, Node* i = nullptr) {
 
     if (this->head == nullptr) { return; }
