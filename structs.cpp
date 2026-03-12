@@ -63,20 +63,19 @@ struct RBT {
 
     Node* y = x->right;
 
-    //Detach y left subtree
     x->right = y->left;
-    y->left = x;
-
-    //Fix parents
-    y->parent = x->parent;
-    x->parent = y;
-
-    //Fix parent child
-    if (y->parent->left == x) { y->parent->left = y; }
-    else { y->parent->right = y; }
-    
-    //Fix child parent
     if (x->right != nullptr) { x->right->parent = x; }
+
+    y->parent = x->parent;
+    if (y->parent != nullptr) {
+
+      if (x->parent->left == x) { x->parent->left = y; }
+      else { x->parent->right = y; }
+    }
+    else { head = y; }
+
+    x->parent = y;
+    y->left = x;
   }
 
   void rightRotate(Node* x) {
@@ -84,15 +83,18 @@ struct RBT {
     Node* y = x->left;
 
     x->left = y->right;
-    y->right = x;
+    if (x->left != nullptr) { x->left->parent = x; }
 
     y->parent = x->parent;
+    if (y->parent != nullptr) {
+
+      if (x->parent->left == x) { x->parent->left = y; }
+      else { x->parent->right = y; }
+    }
+    else { head = y; }
+
     x->parent = y;
-
-    if (y->parent->left == x) { y->parent->left = y; }
-    else { y->parent->right = y; }
-
-    if (x->left != nullptr) { x->left->parent = x; }
+    x->right = x;
   }
 
   Node* getSibling(Node* x) {
@@ -271,7 +273,7 @@ struct RBT {
     else if (x->parent->black == true) { return; }
 
     //Red Parent and Uncle
-    else if (x->parent->black == false and getSibling(x->parent)->black == false) {
+    else if (getSibling(x->parent)->black == false) {
 
       x->parent->black = true;
       getSibling(x->parent)->black = true;
@@ -283,30 +285,20 @@ struct RBT {
       return;
     }
 
-    //Red Parent, Black/Null Uncle, and Inner Child (parent is left and x is right & v.v)
-    else if (x->parent->black == false and
-	     getSibling(x->parent)->black == true and
-	     isInnerChild(x)) {
-
-      if (x->parent->left == x) { rightRotate(x->parent); }
-      else { leftRotate(x->parent); }
-
-      bool temp = x->black;
-      x->black = x->parent->black;
-      x->parent->black = temp;
-    }
-
     //Red Parent, Black/Null Uncle, and Outer Child
-    else if (x->parent->black == false and
-	     getSibling(x->parent)->black == true and
-	     !isInnerChild(x)) {
+    else {
 
+      if (isInnerChild(x) == true) {
+
+	if (x->parent->left == x) { rightRotate(x->parent); }
+	else { leftRotate(x); }
+      }
+      
       if (x->parent->left == x) { rightRotate(x->parent->parent); }
       else { leftRotate(x->parent->parent); }
 
-      bool temp = x->parent->black;
-      x->parent->black = x->parent->parent->black;
-      x->parent->parent->black = temp;
+      getSibling(x)->black = !getSibling(x)->black;
+      x->parent->black = !x->parent->black;
     }
 
     head->black = true;
@@ -329,6 +321,7 @@ struct RBT {
 
       if (i->parent->data < 10) { cout << "(00"; }
       else if (i->parent->data < 100) { cout << "(0"; }
+      else { cout << "("; }
       cout << i->parent->data << ")";
     }
     
