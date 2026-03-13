@@ -15,6 +15,7 @@ struct Node {
 
   Node() {}
   Node(int d) : data(d) {}
+	Node(bool b) : black(b) {}
 
   ~Node() { delete left; delete right; }
 
@@ -24,11 +25,12 @@ struct Node {
 struct RBT {
 
   Node* head = nullptr;
+	Node* nullNode = new Node(true);
 
   RBT() { /*cout << "Head: " << head << endl; */}
 
   //RECURSIVE DELETE
-  ~RBT() { delete head; }
+  ~RBT() { delete head; delete nullNode; }
 
   //Min, succ, and search ripped off from wikipedia
   Node* min(Node* v) {
@@ -94,20 +96,17 @@ struct RBT {
     else { head = y; }
 
     x->parent = y;
-    x->right = x;
+    y->right = x;
   }
 
   Node* getSibling(Node* x) {
 
-    if (x->parent->left == nullptr or x->parent->right == nullptr) {
-
-      Node* s = new Node();
-      s->black = true;
-      return s;
-    }
-    
-    if (x->parent->left == x) { return x->parent->right; }
-    else { return x->parent->left; }
+  	if (x->parent->left == x) {
+  		return x->parent->right == nullptr ? nullNode : x->parent->right;
+  	}
+  	else {
+  		return x->parent->left == nullptr ? nullNode : x->parent->left;
+  	}
   }
 
   bool isInnerChild(Node* x) {
@@ -290,17 +289,23 @@ struct RBT {
 
       if (isInnerChild(x) == true) {
 
-	if (x->parent->left == x) { rightRotate(x->parent); }
-	else { leftRotate(x); }
+		if (x->parent->left == x) { rightRotate(x->parent); x = x->right;}
+		else { leftRotate(x->parent); x = x->left; }
       }
-      
-      if (x->parent->left == x) { rightRotate(x->parent->parent); }
-      else { leftRotate(x->parent->parent); }
 
-      getSibling(x)->black = !getSibling(x)->black;
-      x->parent->black = !x->parent->black;
+    	if (x->parent->left == x) {
+
+      		rightRotate(x->parent->parent);
+      		x->black = !x->black;
+      		if (x->right != nullptr) { x->right->black = !x->right->black; }
+	    }
+	    else {
+
+      		leftRotate(x->parent->parent);
+      		x->black = !x->black;
+      		if (x->left != nullptr) { x->left->black = !x->left->black; }
+	    }
     }
-
     head->black = true;
   }
       
