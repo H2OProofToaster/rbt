@@ -284,7 +284,7 @@ struct RBT {
       return;
     }
 
-    //Red Parent, Black/Null Uncle, and Outer Child
+    //Red Parent, Black/Null Uncle
     else {
 
       if (isInnerChild(x) == true) {
@@ -296,14 +296,14 @@ struct RBT {
     	if (x->parent->left == x) {
 
       		rightRotate(x->parent->parent);
-      		x->black = !x->black;
-      		if (x->right != nullptr) { x->right->black = !x->right->black; }
+      		x->parent->black = !x->parent->black;
+      		if (x->parent->right != nullptr) { x->parent->right->black = !x->parent->right->black; }
 	    }
 	    else {
 
       		leftRotate(x->parent->parent);
-      		x->black = !x->black;
-      		if (x->left != nullptr) { x->left->black = !x->left->black; }
+      		x->parent->black = !x->parent->black;
+      		if (x->parent->left != nullptr) { x->parent->left->black = !x->parent->left->black; }
 	    }
     }
     head->black = true;
