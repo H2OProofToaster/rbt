@@ -15,7 +15,7 @@ struct Node {
 
   Node() {}
   Node(int d) : data(d) {}
-	Node(bool b) : black(b) {}
+  Node(bool b) : black(b), data(-1) {}
 
   ~Node() { delete left; delete right; }
 
@@ -111,16 +111,7 @@ struct RBT {
 
   bool isInnerChild(Node* x) {
 
-    bool r1;
-    bool r2;
-    
-    if (x->parent->left == x) { r1 = false; }
-    else { r1 = true; }
-
-    if (x->parent->parent->left == x->parent) { r2 = false; }
-    else { r2 = true; }
-
-    return r1 ^ r2;
+    return !(x->parent->left == x) ^ !(x->parent->parent->left = x->parent)
   }
   
   void insert(int v) {
@@ -261,6 +252,8 @@ struct RBT {
 	delete remove;
       }
     }
+
+    //fixDeleteColor(
   }
   
   void fixInsertColor(Node* x) {
