@@ -44,7 +44,7 @@ int main() {
 	if (readFile.is_open()) {
 	  
 	  int v;
-	  while (readFile >> v) { cout << "Inserting " << v << endl; tree->insert(v); tree->print(); }
+	  while (readFile >> v) { cout << "Inserting " << v << endl; tree->insert(v); /*tree->print();*/ }
 	}
 	readFile.close();
 	
