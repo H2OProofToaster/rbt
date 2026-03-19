@@ -109,7 +109,7 @@ struct RBT {
 
   bool isInnerChild(Node* x) {
 
-    return !(x->parent->left == x) ^ !(x->parent->parent->left = x->parent)
+    return x->parent->left != x ^ x->parent->parent->left != x->parent;
   }
   
   void insert(int v) {
@@ -133,10 +133,14 @@ struct RBT {
 
     this->fixInsertColor(z);
   }
-  
+
   void remove(int v) {
 
-    Node* remove = this->search(v);
+    this->remove(this->search(v));
+  }
+  
+  void remove(Node* remove) {
+
     if (remove == nullptr) { return; }
     
     //Leaf
@@ -182,68 +186,8 @@ struct RBT {
 
       Node* succ = this->succ(remove);
 
-      //Right child
-      if (remove->right == succ) {
-
-	succ->parent = remove->parent;
-
-	//Fix parent (if it exists)
-	if (remove->parent != nullptr) {
-	  if (remove->parent->left == remove) { remove->parent->left = succ; }
-	  else { remove->parent->right = succ; }
-	}
-	
-	//Root deletion
-	else { this->head = succ; }
-
-	succ->left = remove->left;
-	succ->left->parent = succ;
-	remove->left = nullptr;
-	remove->right = nullptr;
-
-	delete remove;
-      }
-      
-      //Right subtree
-      else {
-
-	//Succ has subtree
-	if (succ->right != nullptr) {
-	  
-	  succ->right->parent = succ->parent;
-
-	  //Fix parent (has to exist)
-	  if (succ->parent->left == succ) { succ->parent->left = succ->right; }
-	  else { succ->parent->right = succ->right; }
-	}
-	
-	//No subtree
-	else {
-	  if (succ->parent->left == succ) { succ->parent->left = nullptr; }
-	  else { succ->parent->right = nullptr; }
-	}
-
-	succ->left = remove->left;
-	succ->left->parent = succ;
-	succ->right = remove->right;
-	succ->right->parent = succ;
-	succ->parent = remove->parent;
-	
-	//Fix parent (if it exists)
-	if (remove->parent != nullptr) {
-	  if (remove->parent->left == remove) { remove->parent->left = succ; }
-	  else { remove->parent->right = succ; }
-	}
-	
-	//Root deletion
-	else { this->head = succ; }
-
-	remove->left = nullptr;
-	remove->right = nullptr;
-
-	this->fixDeleteColor(remove, succ);
-	delete remove;
-      }
+      remove->data = succ->data;
+      this->remove(succ);
     }
   }
   
@@ -286,39 +230,63 @@ struct RBT {
 
   Node* getRedChild(Node* x) {
 
-    if (x->right != nullptr) {
-      Node* right = x->right->black ? nullptr : x->right;
+    if (x->right == nullptr and x->left == nullptr) { //No children
+
+      return nullptr;
     }
-    else if (x->left != nullptr) {
-      Node* left = x->left->black ? nullptr : x->left;
+    
+    else if (x->right == nullptr ^ x->left == nullptr) { //One child
+
+      if (x->right != nullptr and x->right->black == false) { return x->right; } //Right exists
+      else { return x->left; } //Left exists
+    }
+    
+    else { //Two children
+
+      if (x->parent->right == x) { //x is right child, perfer right child
+
+	if (x->right->black == false) { return x->right; }
+	else if (x->left->black == false) { return x->left; }
+      }
+      else { //x is left child, perfer left child
+
+	if (x->left->black == false) { return x->left; }
+	else if (x->right->black == false) { return x->right; }
+      }
     }
 
-    if (right != nullptr and left != nullptr) {
-      if (x->parent->left == x) { return left; }
-      else { return right; }
-    }
-    else if { right != nullptr or left != nullptr) {
-      if (left != nullptr) { return left; }
-      else { return right; }
-    }
     return nullptr;
   }
   
   void fixDeleteColor(Node* v, Node* u) {
 
+    //Make dummy u
+    if (u == nullptr) {
+
+      u = new Node(true);
+      u->parent = v;
+    }
+    
     if (v->black ^ u->black) { u->black = true; }
 
     else if (v->black and u->black) {
 
       u->doubleBlack = true;
 
-      if (head == u) { 
+      if (head == u) { u->doubleBlack = false; return; }
       
       while (u->doubleBlack == true and this->head != u) {
 
 	Node* s = this->getSibling(u);
-	Node* r = this->getRedChild(s); //Favors outside child
+	//Make dummy s
+	if (s == nullptr) {
 
+	  s = new Node(true);
+	  s->parent = v;
+	}
+	
+	Node* r = this->getRedChild(s); //Favors outside child
+	
 	//Black sibling and at least one red nephew
 	if (s->black == true and r != nullptr) {
 
@@ -352,8 +320,10 @@ struct RBT {
 	  s->parent->black = !s->parent->black;
 	  s->parent->parent->black = !s->parent->parent->black;
 	}
+      }
+    }
   }
-      
+    
   void print(int indent = 0, Node* i = nullptr) {
 
     if (this->head == nullptr) { return; } //Empty tree
