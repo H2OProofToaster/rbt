@@ -192,9 +192,10 @@ struct RBT {
 
       Node* succ = this->succ(remove);
       
-      remove->data = succ->data;
       this->remove(succ, true);
       this->fixDeleteColor(remove, succ);
+      remove->data = succ->data;
+      delete succ;
     }
   }
   
@@ -280,7 +281,12 @@ struct RBT {
       
       while (u->doubleBlack == true and this->head != u) {
 
-	Node* s = this->getSibling(u);
+	//I know this is hacky
+	Node* s = nullptr;
+	if (u->parent->left == nullptr and u->parent->right == nullptr) { s = nullNode; }
+	else if (u->parent->left != nullptr) { s = u->parent->left; }
+	else { s = u->parent->right; }
+	
 	Node* r = this->getRedChild(s); //Favors outside child
 	
 	//Black sibling and at least one red nephew
