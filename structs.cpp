@@ -139,7 +139,7 @@ struct RBT {
     this->remove(this->search(v));
   }
   
-  void remove(Node* remove) {
+  void remove(Node* remove, bool twoChild = false) {
 
     if (remove == nullptr) { return; }
     
@@ -155,8 +155,11 @@ struct RBT {
       //Root deletion
       else { this->head = nullptr; }
 
-      this->fixDeleteColor(remove, nullptr);
-      delete remove;
+      if (!twoChild) {
+
+	this->fixDeleteColor(remove, nullptr);
+	delete remove;
+      }
     }
     
     //One child
@@ -177,17 +180,21 @@ struct RBT {
       //Root deletion
       else { this->head = fix; }
 
-      this->fixDeleteColor(remove, fix);
-      delete remove;
+      if (!twoChild) {
+
+	this->fixDeleteColor(remove, fix);
+	delete remove;
+      }
     }
     
     //Two child
     else {
 
       Node* succ = this->succ(remove);
-
+      
       remove->data = succ->data;
-      this->remove(succ);
+      this->remove(succ, true);
+      this->fixDeleteColor(remove, succ);
     }
   }
   
@@ -259,17 +266,13 @@ struct RBT {
   }
   
   void fixDeleteColor(Node* v, Node* u) {
-
-    //Make dummy u
-    if (u == nullptr) {
-
-      u = new Node(true);
-      u->parent = v;
-    }
     
-    if (v->black ^ u->black) { u->black = true; }
+    if (v->black ^ (u == nullptr or u->black)) {
 
-    else if (v->black and u->black) {
+	if (u != nullptr) { u->black = true; }
+    }
+      
+    else if (v->black and (u == nullptr or u->black)) {
 
       u->doubleBlack = true;
 
@@ -278,13 +281,6 @@ struct RBT {
       while (u->doubleBlack == true and this->head != u) {
 
 	Node* s = this->getSibling(u);
-	//Make dummy s
-	if (s == nullptr) {
-
-	  s = new Node(true);
-	  s->parent = v;
-	}
-	
 	Node* r = this->getRedChild(s); //Favors outside child
 	
 	//Black sibling and at least one red nephew
