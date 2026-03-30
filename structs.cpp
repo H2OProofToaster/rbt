@@ -295,14 +295,15 @@ struct RBT {
             r->doubleBlack = false;
             r = r->parent;
           }
+          break;
         }
 
         //Black sibling of replace, far nephew is black, and near nephew is red
         // (sibling exists and black) and (far nephew black) and (near nephew black)
         if (r->getSibling() != nullptr and 
-                 r->getSibling()->black == true and 
-                 ( r->getFarNephew() == nullptr or r->getFarNephew()->black == true ) and 
-                 ( r->getNearNephew() != nullptr and r->getNearNephew()->black == false) ) {
+            r->getSibling()->black == true and 
+            ( r->getFarNephew() == nullptr or r->getFarNephew()->black == true ) and 
+            ( r->getNearNephew() != nullptr and r->getNearNephew()->black == false) ) {
 
           r->getSibling()->black = !r->getSibling()->black;
           r->getNearNephew()->black = !r->getNearNephew()->black;
@@ -312,15 +313,21 @@ struct RBT {
         }
       
         //Black sibling of replace, both nephews are black
-        // (sibling exists and black) and (far nephew black) and (near nephew black)
+        // (sibling exists and black) and (far nephew red) and (near nephew black)
         if (r->getSibling() != nullptr and
             r->getSibling()->black == true and
-            ( r->getFarNephew() == nullptr or r->getFarNephew()->black == true ) and 
+            ( r->getFarNephew() != nullptr or r->getFarNephew()->black == false ) and 
             ( r->getNearNephew() == nullptr or r->getNearNephew()->black == true) ) {
 
-          
+          r->getSibling()->black = r->parent->black;
+          r->parent->black = true;
+          r->getFarNephew()->black = true;
+
+          if (r->parent->left == r) { leftRotate(r->parent); }
+          else { rightRotate(r->parent); }
         }
       }
+    }
   }
     
   void print(int indent = 0, Node* i = nullptr) {
