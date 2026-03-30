@@ -139,7 +139,7 @@ struct RBT {
     this->remove(this->search(v));
   }
   
-  void remove(Node* remove, bool twoChild = false) {
+  void remove(Node* remove) {
 
     if (remove == nullptr) { return; }
     
@@ -155,11 +155,8 @@ struct RBT {
       //Root deletion
       else { this->head = nullptr; }
 
-      if (!twoChild) {
-
-	this->fixDeleteColor(remove, nullptr);
-	delete remove;
-      }
+      this->fixDeleteColor(remove, nullptr);
+      delete remove;
     }
     
     //One child
@@ -180,22 +177,17 @@ struct RBT {
       //Root deletion
       else { this->head = fix; }
 
-      if (!twoChild) {
-
-	this->fixDeleteColor(remove, fix);
-	delete remove;
-      }
+      this->fixDeleteColor(remove, fix);
+      delete remove;
     }
     
     //Two child
     else {
 
       Node* succ = this->succ(remove);
-      
-      this->remove(succ, true);
-      this->fixDeleteColor(remove, succ);
+
       remove->data = succ->data;
-      delete succ;
+      this->remove(succ);
     }
   }
   
@@ -236,93 +228,77 @@ struct RBT {
     }
   }
 
-  Node* getRedChild(Node* x) {
+  Node* getNearNephew(Node* x) {
 
-    if (x->right == nullptr and x->left == nullptr) { //No children
+    if (x->getSibling() != nullptr) {
 
-      return nullptr;
+      if (x->parent->left == x) { return x->getSibling()->left; }
+      else { return x->getSibling()->right; }
     }
-    
-    else if (x->right == nullptr ^ x->left == nullptr) { //One child
-
-      if (x->right != nullptr and x->right->black == false) { return x->right; } //Right exists
-      else { return x->left; } //Left exists
-    }
-    
-    else { //Two children
-
-      if (x->parent->right == x) { //x is right child, perfer right child
-
-	if (x->right->black == false) { return x->right; }
-	else if (x->left->black == false) { return x->left; }
-      }
-      else { //x is left child, perfer left child
-
-	if (x->left->black == false) { return x->left; }
-	else if (x->right->black == false) { return x->right; }
-      }
-    }
-
-    return nullptr;
   }
-  
-  void fixDeleteColor(Node* v, Node* u) {
-    
-    if (v->black ^ (u == nullptr or u->black)) {
 
-	if (u != nullptr) { u->black = true; }
+  Node* getFarNephew(Node* x) {
+
+    if (x->getSibling() != nullptr) {
+
+      if (x->parent->left == x) { return x->getSibling()->right; }
+      else { return x->getSibling()->left; }
+    }
+  }
+
+  void fixDeleteColor(Node* d, Node* r) {
+    //[d]elete
+    //[r]eplace
+    
+    if (d->black ^ (r == nullptr or r->black)) {
+
+	if (d != nullptr) { r->black = true; }
     }
       
-    else if (v->black and (u == nullptr or u->black)) {
+    else if (d->black and (r == nullptr or r->black)) {
 
-      u->doubleBlack = true;
+      r->doubleBlack = true;
 
-      if (head == u) { u->doubleBlack = false; return; }
+      if (head == r) { r->doubleBlack = false; return; }
       
-      while (u->doubleBlack == true and this->head != u) {
+      while (r->doubleBlack == true) {
 
-	//I know this is hacky
-	Node* s = nullptr;
-	if (u->parent->left == nullptr and u->parent->right == nullptr) { s = nullNode; }
-	else if (u->parent->left != nullptr) { s = u->parent->left; }
-	else { s = u->parent->right; }
-	
-	Node* r = this->getRedChild(s); //Favors outside child
-	
-	//Black sibling and at least one red nephew
-	if (s->black == true and r != nullptr) {
+	//Red sibling of replace
+	if (r->getSibling() != nullptr or r->getSibling()->black == false) {
+	  //Sibling has to exist if its red, so no nullptr checks needed
+	  
+	  //Swap parent and sibling color
+	  r->parent->black = !s->parent->black;
+	  r->getSibling()->black = !r->getSibling->black;
 
-	  if (isInnerChild(r) == true) {
-	    if (s->parent->left == s) { rightRotate(s); }
-	    else { leftRotate(s); }
+	  //Rotate towards replace
+	  if (r->parent->left == r) { rotateLeft(r->parent); }
+	  { rotateRight(r->parent); }
+	}
+
+	//Black sibling of replace, and two nephews
+	// (sibling exists and black) and ( (left nephew black) and (right nephew black) )
+	else if ( (r->getSibling() != nullptr and r->getSibling()->black == true) and
+		  ( (r->getSibling()->left == nullptr or r->getSibling()->left->black == true) and
+		    (r->getSibling()->right == nullptr or r->getSibling()->right->black == true) ) ) {
+	  //Sibling has to exist, so no nullptr checks
+	  
+	  r->getSibling()->black = false;
+
+	  //Red parent, end
+	  if (r->parent->black == false) { r->parent->black = true; }
+	  //Black parent, make double black
+	  else {
+	    
+	    r->parent->doubleBlack = true;
+	    r->doubleBlack = false;
+	    r = r->parent;
 	  }
-
-	  if (s->parent->left == s) { rightRotate(s->parent); }
-	  else { leftRotate(s->parent); }
 	}
 
-	//Black sibling and black nephews
-	else if (s->black == true and r == nullptr) {
-
-	  s->black = false;
-	  u->doubleBlack = false;
-
-	  if (s->parent->black == true) { s->parent->doubleBlack = true; }
-	  else { s->parent->black = true; }
-
-	  u = s->parent;
-	}
-
-	//Red sibling
-	else if (s->black == false) {
-
-	  if (s->parent->left == s) { rightRotate(s->parent); }
-	  else { leftRotate(s->parent); }
-
-	  s->parent->black = !s->parent->black;
-	  s->parent->parent->black = !s->parent->parent->black;
-	}
-      }
+	//Black sibling of replace, far nephew is black, and near nephew is red
+	// (sibling exists and black) and (far nephew black) and (near nephew black)
+	else if (r->getSibling() != nullptr and r->getSibling()->black == true and r->getFarNephew()
     }
   }
     
