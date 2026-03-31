@@ -22,12 +22,8 @@ struct Node {
 
   Node* getSibling() {
 
-  	if (parent->left == this) {
-  		return parent->right == nullptr ? nullNode : parent->right;
-  	}
-  	else {
-  		return parent->left == nullptr ? nullNode : parent->left;
-  	}
+  	if (parent->left == this) { return parent->right; }
+  	else { return parent->left; }
   }
 
   bool isInnerChild() {
@@ -42,6 +38,8 @@ struct Node {
       if (parent->left == this) { return getSibling()->left; }
       else { return this->getSibling()->right; }
     }
+
+    return nullptr;
   }
 
   Node* getFarNephew() {
@@ -51,6 +49,8 @@ struct Node {
       if (parent->left == this) { return this->getSibling()->right; }
       else { return this->getSibling()->left; }
     }
+
+    return nullptr;
   }
 
 };
@@ -58,12 +58,11 @@ struct Node {
 struct RBT {
 
   Node* head = nullptr;
-	Node* nullNode = new Node(true);
 
   RBT() { /*cout << "Head: " << head << endl; */}
 
   //RECURSIVE DELETE
-  ~RBT() { delete head; delete nullNode; }
+  ~RBT() { delete head; }
 
   //Min, succ, and search ripped off from wikipedia
   Node* min(Node* v) {
@@ -219,7 +218,8 @@ struct RBT {
     else if (x->parent->black == true) {}
 
     //Red Parent and Uncle
-    else if (x->parent->getSibling()->black == false) {
+    else if (x->parent->getSibling() != nullptr and
+	     x->parent->getSibling()->black == false) {
 
       x->parent->black = true;
       x->parent->getSibling()->black = true;
