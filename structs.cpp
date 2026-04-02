@@ -281,12 +281,12 @@ struct RBT {
           //Sibling has to exist if its red, so no nullptr checks needed
           
           //Swap parent and sibling color
-          r->parent->black = !r->parent->black;
+          parent->black = !parent->black;
           r->getSibling()->black = !r->getSibling()->black;
 
           //Rotate towards replace
-          if (r->parent->left == r) { leftRotate(r->parent); }
-          else { rightRotate(r->parent); }
+          if (parent->left == r) { leftRotate(parent); }
+          else { rightRotate(parent); }
           continue;
         }
 
@@ -302,12 +302,12 @@ struct RBT {
           r->getSibling()->black = false;
 
           //Red parent, end
-          if (r->parent->black == false) { r->parent->black = true; return; }
+          if (parent->black == false) { parent->black = true; *doubleBlack = false; return; }
 
           //Black parent, make double black
-          r->parent->doubleBlack = true;
+          parent->doubleBlack = true;
           *doubleBlack = false;
-          r = r->parent;
+          r = parent;
           doubleBlack = &r->doubleBlack; //Fix check
           continue;
         }
@@ -323,7 +323,7 @@ struct RBT {
           r->getSibling()->black = !r->getSibling()->black;
           r->getNearNephew()->black = !r->getNearNephew()->black;
 
-          if (r->parent->left == r) { rightRotate(r->getSibling()); }
+          if (parent->left == r) { rightRotate(r->getSibling()); }
           else { leftRotate(r->getSibling()); }
 
           continue;
@@ -337,12 +337,12 @@ struct RBT {
             r->getFarNephew()->black == false and
             ( r->getNearNephew() == nullptr or r->getNearNephew()->black == true) ) {
 
-          r->getSibling()->black = r->parent->black;
-          r->parent->black = true;
+          r->getSibling()->black = parent->black;
+          parent->black = true;
           r->getFarNephew()->black = true;
 
-          if (r->parent->left == r) { leftRotate(r->parent); }
-          else { rightRotate(r->parent); }
+          if (parent->left == r) { leftRotate(parent); }
+          else { rightRotate(parent); }
 
           *doubleBlack = false;
         }
