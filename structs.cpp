@@ -251,7 +251,7 @@ struct RBT {
     //[d]elete
     //[r]eplace
 
-    //Delete xor replace are red (or not possible)
+    //Both red is not possible
     //(delete red) xor (replace red)
     if ( (d->black == false) xor (r != nullptr and r->black == false) ) {
 
@@ -265,41 +265,43 @@ struct RBT {
       //Set up double black check
       bool base = true;
       bool* doubleBlack = r != nullptr ? &r->doubleBlack : &base;
+
       //Save parent if replace is null
       Node* parent = r != nullptr ? r->parent : d->parent;
 
+      //Get r->sibling (has to exist)
+      Node* sibling = nullptr;
+      if (r != nullptr) { sibling = r->getSibling(); }
+      else if ( parent->left == nullptr) { sibling = parent->right; }
+      else { sibling = parent->left; }
+      
       //Replace is root
       if (head == r) { *doubleBlack = false; return; }
 
-      //TODO: Use parent saved earlier instead of r->parent
       while (*doubleBlack == true) {
 
         //Red sibling of replace
-        if (r != nullptr and
-            r->getSibling() != nullptr and
-            r->getSibling()->black == false) {
+        if (sibling != nullptr and
+            sibling->black == false) {
           //Sibling has to exist if its red, so no nullptr checks needed
           
           //Swap parent and sibling color
           parent->black = !parent->black;
-          r->getSibling()->black = !r->getSibling()->black;
+          sibling->black = !sibling->black;
 
           //Rotate towards replace
           if (parent->left == r) { leftRotate(parent); }
           else { rightRotate(parent); }
-          continue;
         }
 
         //Black sibling of replace, and two nephews
         // (sibling exists and black) and ( (left nephew black) and (right nephew black) )
-        if (r != nullptr and
-            r->getSibling() != nullptr and
-            r->getSibling()->black == true and
-            (r->getSibling()->left == nullptr or r->getSibling()->left->black == true) and
-            (r->getSibling()->right == nullptr or r->getSibling()->right->black == true) ) {
+        else if ( (sibling != nullptr and sibling->black == true) and
+            (sibling->left == nullptr or sibling->left->black == true) and
+            (sibling->right == nullptr or sibling->right->black == true) ) {
           //Sibling has to exist, so no nullptr checks
           
-          r->getSibling()->black = false;
+          sibling->black = false;
 
           //Red parent, end
           if (parent->black == false) { parent->black = true; *doubleBlack = false; return; }
@@ -309,35 +311,32 @@ struct RBT {
           *doubleBlack = false;
           r = parent;
           doubleBlack = &r->doubleBlack; //Fix check
-          continue;
         }
 
         //Black sibling of replace, far nephew is black, and near nephew is red
         // (sibling exists and black) and (far nephew black) and (near nephew black)
-        if (r != nullptr and r->getSibling() != nullptr and
-            r->getSibling()->black == true and 
+        else if (r != nullptr and sibling != nullptr and
+            sibling->black == true and 
             (r->getFarNephew() == nullptr or r->getFarNephew()->black == true) and
             r->getNearNephew() != nullptr and
             r->getNearNephew()->black == false) {
 
-          r->getSibling()->black = !r->getSibling()->black;
+          sibling->black = !sibling->black;
           r->getNearNephew()->black = !r->getNearNephew()->black;
 
-          if (parent->left == r) { rightRotate(r->getSibling()); }
-          else { leftRotate(r->getSibling()); }
-
-          continue;
+          if (parent->left == r) { rightRotate(sibling); }
+          else { leftRotate(sibling); }
         }
       
         //Black sibling of replace, both nephews are black
         // (sibling exists and black) and (far nephew red) and (near nephew black)
-        if (r != nullptr and r->getSibling() != nullptr and
-            r->getSibling()->black == true and
+        else if (r != nullptr and sibling != nullptr and
+            sibling->black == true and
             r->getFarNephew() != nullptr and
             r->getFarNephew()->black == false and
             ( r->getNearNephew() == nullptr or r->getNearNephew()->black == true) ) {
 
-          r->getSibling()->black = parent->black;
+          sibling->black = parent->black;
           parent->black = true;
           r->getFarNephew()->black = true;
 
@@ -346,6 +345,9 @@ struct RBT {
 
           *doubleBlack = false;
         }
+
+	//Log that no case happened
+	else { cout << "No recursive case executed" << endl; }
 
         //Base case (null replace)
         break;
