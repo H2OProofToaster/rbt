@@ -266,20 +266,20 @@ struct RBT {
       bool base = true;
       bool* doubleBlack = r != nullptr ? &r->doubleBlack : &base;
 
-      //Save parent if replace is null
-      Node* parent = r != nullptr ? r->parent : d->parent;
-
-      //Get r->sibling (has to exist)
-      Node* sibling = nullptr;
-      if (r != nullptr) { sibling = r->getSibling(); }
-      else if ( parent->left == nullptr) { sibling = parent->right; }
-      else { sibling = parent->left; }
-      
-      //Replace is root
-      if (head == r) { *doubleBlack = false; return; }
-
       while (*doubleBlack == true) {
 
+	//Save parent if replace is null
+	Node* parent = r != nullptr ? r->parent : d->parent;
+
+	//Get r->sibling (has to exist)
+	Node* sibling = nullptr;
+	if (r != nullptr) { sibling = r->getSibling(); }
+	else if ( parent->left == nullptr) { sibling = parent->right; }
+	else { sibling = parent->left; }
+      
+	//Replace is root
+	if (head == r) { *doubleBlack = false; return; }
+	
         //Red sibling of replace
         if (sibling != nullptr and
             sibling->black == false) {
