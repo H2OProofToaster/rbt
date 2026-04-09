@@ -268,6 +268,8 @@ struct RBT {
 
       while (*doubleBlack == true) {
 
+	this->print();
+	
 	//Save parent if replace is null
 	Node* parent = r != nullptr ? r->parent : d->parent;
 
@@ -304,7 +306,12 @@ struct RBT {
           sibling->black = false;
 
           //Red parent, end
-          if (parent->black == false) { parent->black = true; *doubleBlack = false; return; }
+          if (parent->black == false) {
+
+	    parent->black = true;
+	    *doubleBlack = false;
+	    return;
+	  }
 
           //Black parent, make double black
           parent->doubleBlack = true;
