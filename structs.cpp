@@ -167,27 +167,27 @@ struct RBT {
       //Root deletion
       if (this->head == remove) {
 
-	this->head = nullptr;
-	delete remove;
+	      this->head = nullptr;
+	      delete remove;
       }
 
       //Insert null node
       else {
 
-	Node* nullNode = new Node(true);
-	nullNode->parent = remove->parent;
+	      Node* nullNode = new Node(true);
+	      nullNode->parent = remove->parent;
 
-	if (remove->parent->left == remove) { remove->parent->left = nullNode; }
-	else { remove->parent->right = nullNode; }
+	      if (remove->parent->left == remove) { remove->parent->left = nullNode; }
+	      else { remove->parent->right = nullNode; }
 
-	this->fixDeleteColor(remove, nullNode);
+        this->fixDeleteColor(remove, nullNode);
 
-	//Detach null node
-	if (nullNode->parent->left == nullNode) { nullNode->parent->left = nullptr; }
-	else { nullNode->parent->right = nullptr; }
+        //Detach null node
+        if (nullNode->parent->left == nullNode) { nullNode->parent->left = nullptr; }
+        else { nullNode->parent->right = nullptr; }
 
-	delete nullNode;
-	delete remove;
+        delete nullNode;
+        delete remove;
       }
     }
     
@@ -283,16 +283,16 @@ struct RBT {
       
       while (r->doubleBlack == true) {
 	
-	//Save parent if replace is null
-	Node* parent = r->parent;
+        //Save parent if replace is null
+        Node* parent = r->parent;
 
-	//Get r->sibling
-	Node* sibling = nullptr;
-	sibling = r->getSibling();
-      
-	//Replace is root
-	if (head == r) { r->doubleBlack = false; return; }
-	
+        //Get r->sibling
+        Node* sibling = nullptr;
+        sibling = r->getSibling();
+            
+        //Replace is root
+        if (head == r) { r->doubleBlack = false; return; }
+        
         //Red sibling of replace
         if (sibling != nullptr and sibling->black == false) {
           //Sibling has to exist if it is red, so no nullptr checks needed
@@ -318,17 +318,17 @@ struct RBT {
           //Red parent, end
           if (parent->black == false) {
 
-	    parent->black = true;
-	    r->doubleBlack = false;
-	    return;
-	  }
+	          parent->black = true;
+	          r->doubleBlack = false;
+	          return;
+	        }
 
           //Black parent, make double black
           parent->doubleBlack = true;
           r->doubleBlack = false;
           r = parent;
-	  this->print();
-	  continue;
+	        this->print();
+	        continue;
         }
 
         //Black sibling of replace, far nephew is black, and near nephew is red
@@ -344,26 +344,26 @@ struct RBT {
           if (parent->left == r) { rightRotate(sibling); }
           else { leftRotate(sibling); }
 
-	  //Far red nephew case
+	        //Far red nephew case
 
-	  //Get again after rotation
-	  sibling = r->getSibling();
+          //Get again after rotation
+          sibling = r->getSibling();
 
-	  sibling->black = parent->black;
-	  parent->black = true;
-	  r->getFarNephew()->black = true;
+          sibling->black = parent->black;
+          parent->black = true;
+          r->getFarNephew()->black = true;
 
-	  if (parent->left == r) { leftRotate(parent); }
-	  else { rightRotate(parent); }
+          if (parent->left == r) { leftRotate(parent); }
+          else { rightRotate(parent); }
 
-	  r->doubleBlack = false;
+          r->doubleBlack = false;
         }
       
         //Black sibling of replace, far nephew red         *DOESN'T MATTER-------*
         // (sibling exists and black) and (far nephew red) and (near nephew black)
         else if (sibling != nullptr and
-		 sibling->black == true and
-		 r->getFarNephew() != nullptr and r->getFarNephew()->black == false) {
+		             sibling->black == true and
+		             r->getFarNephew() != nullptr and r->getFarNephew()->black == false) {
 
           sibling->black = parent->black;
           parent->black = true;
@@ -375,8 +375,8 @@ struct RBT {
           r->doubleBlack = false;
         }
 
-	//Log that no case happened
-	else { cout << "No recursive case executed" << endl; }
+        //Log that no case happened
+        else { cout << "No recursive case executed" << endl; }
 
         //Base case (null replace)
         break;
