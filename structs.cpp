@@ -220,8 +220,8 @@ struct RBT {
 
       remove->data = succ->data;
 
-      cout << "Before two child recursion: " << endl;
-      this->print();
+      //cout << "Before two child recursion: " << endl;
+      //this->print();
       
       this->remove(succ);
     }
@@ -309,8 +309,8 @@ struct RBT {
 	  sibling = r->getSibling();
 	  
 	  //Move on to back sibling case
-	  cout << "Red sibling after changing to black sibling" << endl;
-	  this->print();
+	  //cout << "Red sibling after changing to black sibling" << endl;
+	  //this->print();
         }
 
         //Black sibling of replace, and two nephews
