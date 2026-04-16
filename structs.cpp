@@ -301,14 +301,21 @@ struct RBT {
           parent->black = !parent->black;
           sibling->black = !sibling->black;
 
-          //Rotate towards replace
-          if (parent->left == r) { leftRotate(parent); }
-          else { rightRotate(parent); }
+	  //Rotate towards r
+	  if (parent->left == r) { leftRotate(parent); }
+	  else { rightRotate(parent); }
+
+	  //Get new sibling after rotation
+	  sibling = r->getSibling();
+	  
+	  //Move on to back sibling case
+	  cout << "Red sibling after changing to black sibling" << endl;
+	  this->print();
         }
 
         //Black sibling of replace, and two nephews
         // (sibling exists and black) and ( (left nephew black) and (right nephew black) )
-        else if ( (sibling != nullptr and sibling->black == true) and
+        if ( (sibling != nullptr and sibling->black == true) and
                   (sibling->left == nullptr or sibling->left->black == true) and
                   (sibling->right == nullptr or sibling->right->black == true) ) {
           //Sibling has to exist, so no nullptr checks
@@ -327,8 +334,8 @@ struct RBT {
           parent->doubleBlack = true;
           r->doubleBlack = false;
           r = parent;
-	        this->print();
-	        continue;
+	  //this->print();
+	  continue; //I have no idea about this continue, but I wouldn't touch it
         }
 
         //Black sibling of replace, far nephew is black, and near nephew is red
