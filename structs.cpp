@@ -282,6 +282,9 @@ struct RBT {
       r->doubleBlack = true;
       
       while (r->doubleBlack == true) {
+
+	//Replace is root
+	if (head == r) { r->doubleBlack = false; return; }
 	
         //Save parent if replace is null
         Node* parent = r->parent;
@@ -289,9 +292,6 @@ struct RBT {
         //Get r->sibling
         Node* sibling = nullptr;
         sibling = r->getSibling();
-            
-        //Replace is root
-        if (head == r) { r->doubleBlack = false; return; }
         
         //Red sibling of replace
         if (sibling != nullptr and sibling->black == false) {
